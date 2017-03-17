@@ -1,0 +1,108 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><meta name="author" content="Ben Wong,wenbinben@gmail.com"><title>nginx配置文件相关说明 · mxlive</title><meta name="description" content="#user  nobody;worker_processes  1; //nginx 进程数  number | auto 自动获取
+worker_rlimit_nofile 65535;  //这个参数表示worker进程最多能打开的文件句柄数，基于liunx系统ulimit设置查看系统文件句柄数"><meta name="keywords" content="Hexo,HTML,Ben,CSS,安卓,android,Linux,linuxdeepin"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="renderer" content="webkit"><link rel="short icon" href="/images/favicon.png" type="image/x-icon"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/blog_basic.css"><link rel="stylesheet" href="/css/font-awesome.min.css"><link rel="alternate" type="application/atom+xml" title="ATOM 1.0" href="/atom.xml"></head><body><div class="sidebar animated fadeInDown"><div class="logo-title"><div class="title"><img src="/images/logo@2x.png" style="width:127px;"><h3 title=""><a href="/">mxlive</a></h3><div class="description"><p>Nothing lasts forever.</p></div></div></div><ul class="social-links"><li><a href="https://twitter.com/Ben_wenbin"><i class="fa fa-twitter"></i></a></li><li><a href="/atom.xml"><i class="fa fa-rss"></i></a></li><li><a href="http://weibo.com//1810307673/profile?topnav=1&amp;wvr=6"><i class="fa fa-weibo"></i></a></li></ul><div class="footer"><a target="_blank" href="/"><span>Theme by </span></a><a href="https://www.caicai.me"> CaiCai</a><span>&</span><a href="https://github.com/Ben02/hexo-theme-Anatole"> Ben</a><div class="by_farbox"><a href="https://hexo.io/zh-cn/" target="_blank">Proudly published with Hexo&#65281;</a></div></div></div><div class="main"><div class="page-top animated fadeInDown"><div class="nav"><li><a href="/">首页</a></li><li><a href="/about">关于</a></li><li><a href="/archives">归档</a></li><li><a href="/links">友链</a></li></div><div class="information"><div class="back_btn"><li><a onclick="window.history.go(-1)" class="fa fa-chevron-left"> </a></li></div><div class="avatar"><img src="http://eva.jdoni.com/7859065.jpg"></div></div></div><div class="autopagerize_page_element"><div class="content"><div class="post-page"><div class="post animated fadeInDown"><div class="post-title"><h3><a>nginx配置文件相关说明</a></h3></div><div class="post-content"><p>#user  nobody;<br>worker_processes  1; //nginx 进程数  number | auto 自动获取</p>
+<p>worker_rlimit_nofile 65535;  //这个参数表示worker进程最多能打开的文件句柄数，基于liunx系统ulimit设置<br>查看系统文件句柄数最大值：ulimit -n</p>
+<p>#error_log  logs/error.log;</p>
+<p>#error_log  logs/error.log  notice;</p>
+<p>#error_log  logs/error.log  info;</p>
+<p>#pid        logs/nginx.pid;</p>
+<p>events {<br>use epoll;//事件驱动模型<br>    worker_connections  1024; //该参数表示设置一个worker进程最多开启多少线程数</p>
+<p>设置应该等同于worker_rlimit_nofile设置值，表明一个线程处理一个http请求，同时可以处理一个文件数，各个模块之间协调合作不等待。该值不能大于worker_rlimit_nofile的值<br>}<br>理论上的max_client nginx作为http服务器的时候： max_clients = worker_processes * worker_connections/2</p>
+<p>nginx作为反向代理服务器的时候： max_clients = worker_processes * worker_connections/4</p>
+<p>http {<br>    include       mime.types;<br>    default_type  application/octet-stream;</p>
+<pre><code>#log_format  main  &apos;$remote_addr - $remote_user [$time_local] &quot;$request&quot; &apos;
+#                  &apos;$status $body_bytes_sent &quot;$http_referer&quot; &apos;
+#                  &apos;&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;&apos;;
+
+#access_log  logs/access.log  main;
+
+sendfile        on;
+#tcp_nopush     on;
+
+#keepalive_timeout  0;
+keepalive_timeout  65;
+
+#gzip  on;
+
+server {
+    listen       80;
+    server_name  localhost;
+
+    #charset koi8-r;
+
+    #access_log  logs/host.access.log  main;
+
+    location / {
+        root   html;
+        index  index.html index.htm;
+    }
+
+    #error_page  404              /404.html;
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   html;
+    }
+
+    # proxy the PHP scripts to Apache listening on 127.0.0.1:80
+    #
+    #location ~ \.php$ {
+    #    proxy_pass   http://127.0.0.1;
+    #}
+
+    # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+    #
+    #location ~ \.php$ {
+    #    root           html;
+    #    fastcgi_pass   127.0.0.1:9000;//指定 fpm 进程监听的地址
+    #    fastcgi_index  index.php;
+    #    fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+    #    include        fastcgi_params;
+    #}
+
+    # deny access to .htaccess files, if Apache&apos;s document root
+    # concurs with nginx&apos;s one
+    #
+    #location ~ /\.ht {
+    #    deny  all;
+    #}
+}
+
+
+# another virtual host using mix of IP-, name-, and port-based configuration
+#
+#server {
+#    listen       8000;
+#    listen       somename:8080;
+#    server_name  somename  alias  another.alias;
+
+#    location / {
+#        root   html;
+#        index  index.html index.htm;
+#    }
+#}
+
+
+# HTTPS server
+#
+#server {
+#    listen       443 ssl;
+#    server_name  localhost;
+
+#    ssl_certificate      cert.pem;
+#    ssl_certificate_key  cert.key;
+
+#    ssl_session_cache    shared:SSL:1m;
+#    ssl_session_timeout  5m;
+
+#    ssl_ciphers  HIGH:!aNULL:!MD5;
+#    ssl_prefer_server_ciphers  on;
+
+#    location / {
+#        root   html;
+#        index  index.html index.htm;
+#    }
+#}
+</code></pre><p>}</p>
+</div><div class="post-footer"><div class="meta"><div class="info"><i class="fa fa-sun-o"></i><span class="date">2017-03-17</span><i class="fa fa-tag"></i></div></div></div></div><div class="share"><div class="evernote"> <a href="javascript:(function(){EN_CLIP_HOST='http://www.evernote.com';try{var%20x=document.createElement('SCRIPT');x.type='text/javascript';x.src=EN_CLIP_HOST+'/public/bookmarkClipper.js?'+(new%20Date().getTime()/100000);document.getElementsByTagName('head')[0].appendChild(x);}catch(e){location.href=EN_CLIP_HOST+'/clip.action?url='+encodeURIComponent(location.href)+'&amp;title='+encodeURIComponent(document.title);}})();" ref="nofollow" target="_blank" class="fa fa-bookmark"></a></div><div class="weibo"> <a href="javascript:void((function(s,d,e){try{}catch(e){}var f='http://service.weibo.com/share/share.php?',u=d.location.href,p=['url=',e(u),'&amp;title=',e(d.title),'&amp;appkey=2924220432'].join('');function a(){if(!window.open([f,p].join(''),'mb',['toolbar=0,status=0,resizable=1,width=620,height=450,left=',(s.width-620)/2,',top=',(s.height-450)/2].join('')))u.href=[f,p].join('');};if(/Firefox/.test(navigator.userAgent)){setTimeout(a,0)}else{a()}})(screen,document,encodeURIComponent));" class="fa fa-weibo"></a></div><div class="twitter"> <a href="http://twitter.com/home?status=,http://mxlive.github.io/2017/03/17/2017-03-17/,mxlive,nginx配置文件相关说明,;" class="fa fa-twitter"></a></div></div><div class="pagination"><ul class="clearfix"><li class="next pagbuttons"><a role="navigation" href="/2017/03/16/hello/" title="hello" class="btn">下一篇</a></li></ul></div></div></div></div></div><script src="/js/jquery.js"></script><script src="/js/jquery-migrate-1.2.1.min.js"></script><script src="/js/jquery.appear.js"></script></body></html>
